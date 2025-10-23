@@ -1,0 +1,43 @@
+<div class="chatbot-container">
+    <button class="toggle-button" (click)="toggleChat()">
+        <span *ngIf="!isChatOpen">🐾</span>
+        <span *ngIf="isChatOpen">✕</span>
+    </button>
+
+    <div class="chat-window" *ngIf="isChatOpen">
+        <div class="chat-header">
+            PawBot Assistant 
+            <span class="status">{{ isBotTyping ? 'typing...' : 'Online' }}</span>
+        </div>
+        <div class="chat-body">
+            <div class="message" [class.user]="message.sender === 'user'" [class.bot]="message.sender === 'bot'" *ngFor="let message of messages">
+                <div class="bubble">
+                    <span *ngIf="!message.isTyping">{{ message.text }}</span>
+                    <div *ngIf="message.isTyping" class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+            <div class="message bot" *ngIf="isBotTyping">
+                <div class="bubble">
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="chat-input">
+            <input 
+                type="text" 
+                placeholder="Ask PawBot..."
+                [(ngModel)]="userInput"
+                (keyup.enter)="sendMessage()"
+                [disabled]="isBotTyping">
+            <button (click)="sendMessage()" [disabled]="isBotTyping || !userInput.trim()">Send</button>
+        </div>
+    </div>
+</div>

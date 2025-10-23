@@ -1,0 +1,39 @@
+<div 
+  class="product-card"
+  [@cardHover]="hoverState"
+  (mouseenter)="onMouseEnter()"
+  (mouseleave)="onMouseLeave()"
+>
+    <div class="product-image">
+        <img [src]="product.image[0]" [alt]="product.name">
+        <span class="product-tag">{{ product.tag }}</span>
+    </div>
+
+    <div class="product-info">
+        <h3>{{ product.name }}</h3>
+        <p class="description">{{ product.shortDescription }}</p>
+        
+        <div class="details-row">
+            <span class="price">₹{{ product.price | number:'1.2-2' }}</span>
+            <div class="rating">
+                <span class="rating-star">⭐</span>
+                {{ product.rating }}/5 ({{ product.reviewsCount }})
+            </div>
+        </div>
+        
+        <button class="why-need-btn" (click)="toggleWhyNeed($event)">
+            Why do I need this? 
+            <span class="expand-icon">{{ whyNeedState === 'open' ? '▲' : '▼' }}</span>
+        </button>
+    </div>
+    
+    <div class="why-need-expansion" [@whyNeedExpand]="whyNeedState">
+        <p><strong>Benefit:</strong> {{ product.whyNeed }}</p>
+    </div>
+    
+    <div class="card-actions" [@cartSlide]="hoverState === 'hover' ? 'in' : 'out'">
+        <button class="add-to-cart-btn" (click)="onAddToCart($event)">
+            🛒 Add to Cart
+        </button>
+    </div>
+</div>

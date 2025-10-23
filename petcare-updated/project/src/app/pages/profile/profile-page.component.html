@@ -1,0 +1,355 @@
+<div class="dashboard-container">
+  <aside class="sidebar" [class.collapsed]="false"> 
+    <div class="logo">
+      <span class="logo-icon">🐾</span>
+      <span class="logo-text">PetCare</span>
+    </div>
+
+    <nav class="menu">
+      <div 
+        class="menu-item" 
+        (click)="navigateTo('dashboard')"
+        data-tooltip="Dashboard">
+        <span class="menu-icon">🏠</span>
+        <span class="menu-text">Dashboard</span>
+      </div>
+      <div 
+        class="menu-item" 
+        (click)="navigateTo('shop')"
+        data-tooltip="Shop">
+        <span class="menu-icon">🛒</span>
+        <span class="menu-text">Shop</span>
+      </div>
+      <div 
+        class="menu-item" 
+        (click)="navigateTo('vaccines')"
+        data-tooltip="Vaccines">
+        <span class="menu-icon">💉</span>
+        <span class="menu-text">Vaccines</span>
+      </div>
+      <div 
+        class="menu-item" 
+        (click)="navigateTo('vets')"
+        data-tooltip="Vets">
+        <span class="menu-icon">🧑</span>
+        <span class="menu-text">Vets</span>
+      </div>
+      <div 
+        class="menu-item active" 
+        (click)="navigateTo('profile')"
+        data-tooltip="Profile">
+        <span class="menu-icon">👤</span>
+        <span class="menu-text">Profile</span>
+      </div>
+      <div class="menu-item logout" (click)="navigateTo('logout')" data-tooltip="Logout">
+        <span class="menu-icon">🚪</span>
+        <span class="menu-text">Logout</span>
+      </div>
+    </nav>
+
+    <button class="toggle-btn" (click)="toggleSidebar()">
+      ←
+    </button>
+  </aside>
+
+  <app-chatbot></app-chatbot>
+  <main class="main-content">
+    
+    <div class="profile-internal-content">
+        <nav class="profile-tabs">
+            <div 
+                class="tab-item" 
+                [class.active]="activeSection === 'profile'" 
+                (click)="selectSection('profile')">
+                My Info
+            </div>
+            <div 
+                class="tab-item" 
+                [class.active]="activeSection === 'pets'" 
+                (click)="selectSection('pets')">
+                My Pets
+            </div>
+            <div 
+                class="tab-item" 
+                [class.active]="activeSection === 'orders'" 
+                (click)="selectSection('orders')">
+                My Orders
+            </div>
+            <div 
+                class="tab-item" 
+                [class.active]="activeSection === 'addresses'" 
+                (click)="selectSection('addresses')">
+                Addresses
+            </div>
+            <div 
+                class="tab-item" 
+                [class.active]="activeSection === 'settings'" 
+                (click)="selectSection('settings')">
+                Settings
+            </div>
+        </nav>
+
+        
+        <section *ngIf="activeSection === 'profile'">
+          <div class="section-header">
+            <h1>My Profile</h1>
+            <button class="edit-btn" (click)="toggleEdit()">
+              {{ editMode ? 'Cancel' : 'Edit Profile' }}
+            </button>
+          </div>
+
+          <div class="user-details-card">
+            <div class="profile-image-container">
+              <img [src]="userData.profileImage" alt="Profile Picture">
+              <span *ngIf="!editMode" class="join-date">Joined: {{ getJoinedDateString() }}</span>
+            </div>
+            
+            <div class="details-grid">
+              <div class="info-item">
+                <label>Name</label>
+                <input *ngIf="editMode" type="text" [(ngModel)]="editableUser.name" name="name">
+                <p *ngIf="!editMode">{{ userData.name }}</p>
+              </div>
+              <div class="info-item">
+                <label>Email</label>
+                <input *ngIf="editMode" type="email" [(ngModel)]="editableUser.email" name="email">
+                <p *ngIf="!editMode">{{ userData.email }}</p>
+              </div>
+              <div class="info-item">
+                <label>Phone</label>
+                <input *ngIf="editMode" type="tel" [(ngModel)]="editableUser.phone" name="phone">
+                <p *ngIf="!editMode">{{ userData.phone }}</p>
+              </div>
+              <div class="info-item">
+                <label>Preferred Pet</label>
+                <select *ngIf="editMode" [(ngModel)]="editableUser.preferredPetType" name="preferredPetType">
+                    <option value="Dog">Dog</option>
+                    <option value="Cat">Cat</option>
+                    <option value="All">All</option>
+                </select>
+                <p *ngIf="!editMode">{{ userData.preferredPetType }}</p>
+              </div>
+              
+              <div class="info-item pet-summary">
+                  <label>Registered Pets</label>
+                  <p>{{ getPetsSummary().count }} pet(s)</p>
+              </div>
+              <div class="info-item pet-summary-names">
+                  <label>Pet Names</label>
+                  <p>{{ getPetsSummary().names }}</p>
+              </div>
+              </div>
+
+            <button *ngIf="editMode" class="save-btn" (click)="saveProfile()">Save Changes</button>
+          </div>
+        </section>
+
+        <section *ngIf="activeSection === 'pets'">
+          <div class="section-header">
+            <h1>My Pets</h1>
+            <button class="add-btn" (click)="addNewPet()">+ Add New Pet</button>
+          </div>
+
+          <div class="pet-cards-grid">
+            <div class="pet-card-profile" *ngFor="let pet of pets">
+              <img [src]="pet.photo" [alt]="pet.name" class="pet-photo-profile">
+              <div class="pet-details-profile">
+                <h3>{{ pet.name }} ({{ pet.gender }})</h3>
+                <p class="pet-breed-age">{{ pet.breed }} • {{ getPetAgeString(pet.age) }}</p>
+                <p class="pet-health-status">Vaccination: <span [class.due]="pet.vaccinationStatus !== 'up-to-date'">{{ pet.vaccinationStatus }}</span></p>
+                <div class="reco-widget">{{ getRecommedationText(pet.name) }}</div>
+              </div>
+            </div>
+            <div *ngIf="pets.length === 0" class="empty-state-card">
+                <p>No pets added yet. Click 'Add New Pet' to get personalized recommendations!</p>
+            </div>
+          </div>
+        </section>
+        
+        <section *ngIf="activeSection === 'orders'">
+          <div class="section-header">
+            <h1>Order History & Tracking</h1>
+          </div>
+          
+          <div class="order-summary-card">
+              <div class="summary-item">
+                  <strong>{{ getOrdersSummary().total }}</strong>
+                  <span>Total Orders</span>
+              </div>
+              <div class="summary-item">
+                  <strong>{{ getOrdersSummary().delivered }}</strong>
+                  <span>Delivered</span>
+              </div>
+              <div class="summary-item in-transit">
+                  <strong>{{ getOrdersSummary().inTransit }}</strong>
+                  <span>In Transit</span>
+              </div>
+          </div>
+
+          <div *ngIf="orders.length === 0" class="empty-state-card">
+            <p>You haven't placed any orders yet.</p>
+          </div>
+
+          <div *ngFor="let order of orders" class="order-card">
+              <div class="order-header">
+                <h3>Order ID: {{ order.id }} | Total: ₹{{ order.total | number: '1.2-2' }}</h3>
+                <span class="status-badge" [class.delivered]="order.status === 'Delivered'" [class.shipping]="order.status !== 'Delivered' && order.status !== 'Cancelled'" [class.cancelled]="order.status === 'Cancelled'">
+                  {{ order.status }}
+                </span>
+              </div>
+
+              <div class="delivery-info">
+                <p><strong>Tracking ID:</strong> {{ order.trackingId }}</p>
+                <p><strong>Order Date:</strong> {{ order.orderDate | date:'mediumDate' }}</p>
+                <p *ngIf="order.status !== 'Delivered' && order.status !== 'Cancelled'">
+                  <strong>Est. Delivery:</strong> {{ order.expectedDelivery | date:'mediumDate' }} ({{ getEstimatedDelivery(order.expectedDelivery) }})
+                </p>
+              </div>
+
+              <div class="timeline-container">
+                <div class="timeline">
+                  <ng-container *ngFor="let step of statusSteps; let i = index">
+                    <div class="timeline-step" [class.completed]="isStepCompleted(order.status, step.name)">
+                      <div class="step-icon">
+                        <span *ngIf="isStepCompleted(order.status, step.name)">{{ step.icon }}</span>
+                      </div>
+                      <div class="step-label">{{ step.name }}</div>
+                    </div>
+                  </ng-container>
+                </div>
+              </div>
+              
+              <div class="product-summary">
+                <h4>Products ({{ order.products.length }} item<span *ngIf="order.products.length !== 1">s</span>)</h4>
+                <div class="product-list">
+                  <div *ngFor="let p of order.products" class="product-item">
+                    <img [src]="p.imageUrl" class="product-thumb">
+                    <span>{{ p.name }} (x{{ p.quantity }})</span>
+                  </div>
+                </div>
+              </div>
+              
+              <button 
+                  class="action-button reorder-button" 
+                  *ngIf="order.status === 'Delivered'"
+                  (click)="reorderProduct(order.products[0].id)">
+                Re-order
+              </button>
+              <button 
+                  class="action-button cancel-button" 
+                  *ngIf="order.status !== 'Delivered' && order.status !== 'Cancelled'"
+                  (click)="cancelOrder(order.id)">
+                Cancel Order
+              </button>
+            </div>
+            
+        </section>
+        
+        <section *ngIf="activeSection === 'addresses'">
+            <div class="section-header">
+                <h1>Address Book</h1>
+                <button class="add-btn" (click)="openAddressModal()">+ Add New Address</button>
+            </div>
+            
+            <div class="address-cards-grid">
+                <div class="address-card" *ngFor="let address of addresses" [class.default]="address.isDefault">
+                    <h3>{{ address.fullName }} <span *ngIf="address.isDefault" class="default-badge">DEFAULT</span></h3>
+                    <p>{{ address.street }}, {{ address.city }}, {{ address.state }} - {{ address.zipCode }}</p>
+                    <p>Phone: {{ address.phone }}</p>
+                    <div class="address-actions">
+                        <button class="edit-btn-small" (click)="openAddressModal(address)">Edit</button>
+                        <button class="delete-btn-small" (click)="deleteAddress(address.id)">Delete</button>
+                        <button class="set-default-btn" *ngIf="!address.isDefault" (click)="setDefaultAddress(address.id)">Set as Default</button>
+                    </div>
+                </div>
+                 <div *ngIf="addresses.length === 0" class="empty-state-card">
+                    <p>No addresses saved. Click 'Add New Address' to begin.</p>
+                </div>
+            </div>
+        </section>
+
+        <section *ngIf="activeSection === 'settings'">
+          <div class="section-header">
+            <h1>Account Settings</h1>
+            <button class="edit-btn" (click)="saveSettings()">Save Settings</button>
+          </div>
+          
+          <div class="settings-card">
+              <h3>Security</h3>
+              <div class="setting-group">
+                <button class="setting-action-btn">Change Password</button>
+              </div>
+
+              <h3>Notifications</h3>
+              <div class="notification-setting">
+                  <label for="order-updates">Order Updates (Email)</label>
+                  <input type="checkbox" id="order-updates" [checked]="true" (change)="updateSetting('orderEmail', $event.target.checked)">
+              </div>
+              <div class="notification-setting">
+                  <label for="special-offers">Special Offers (Email)</label>
+                  <input type="checkbox" id="special-offers" [checked]="false" (change)="updateSetting('offersEmail', $event.target.checked)">
+              </div>
+              
+              <h3>Account Management</h3>
+              <div class="setting-group">
+                <button class="setting-action-btn delete-btn" (click)="deleteAccount()">Delete Account</button>
+              </div>
+          </div>
+        </section>
+    </div>
+    
+    <footer class="dashboard-footer">
+      <p>© 2025 PetCare. Love. Heal. Protect.</p>
+    </footer>
+    
+    <button class="chatbot-button" (click)="openChatbot()" aria-label="Open chatbot">
+        <span class="chatbot-icon">🐾</span>
+    </button>
+    
+  </main>
+</div>
+
+<div class="address-modal-overlay" *ngIf="showAddressModal" (click)="closeAddressModal()">
+    <div class="address-modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <h2>{{ isEditingAddress ? 'Edit Address' : 'Add New Address' }}</h2>
+            <button class="close-btn" (click)="closeAddressModal()">✕</button>
+        </div>
+        <form #addressForm="ngForm" (ngSubmit)="saveAddress()">
+            <div class="form-group">
+                <label for="fullName">Full Name *</label>
+                <input type="text" id="fullName" name="fullName" [(ngModel)]="currentAddress.fullName" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number *</label>
+                <input type="tel" id="phone" name="phone" [(ngModel)]="currentAddress.phone" required pattern="[0-9]{10}">
+            </div>
+            <div class="form-group">
+                <label for="street">Street Address *</label>
+                <input type="text" id="street" name="street" [(ngModel)]="currentAddress.street" required>
+            </div>
+            <div class="form-group-inline">
+                <div class="form-group">
+                    <label for="city">City *</label>
+                    <input type="text" id="city" name="city" [(ngModel)]="currentAddress.city" required>
+                </div>
+                <div class="form-group">
+                    <label for="state">State *</label>
+                    <input type="text" id="state" name="state" [(ngModel)]="currentAddress.state" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="zipCode">Zip Code *</label>
+                <input type="text" id="zipCode" name="zipCode" [(ngModel)]="currentAddress.zipCode" required>
+            </div>
+            <div class="form-group-checkbox">
+                <input type="checkbox" id="isDefault" name="isDefault" [(ngModel)]="currentAddress.isDefault">
+                <label for="isDefault">Set as default delivery address</label>
+            </div>
+
+            <button type="submit" class="save-address-btn" [disabled]="!addressForm.valid">
+                {{ isEditingAddress ? 'Save Changes' : 'Add Address' }}
+            </button>
+        </form>
+    </div>
+</div>

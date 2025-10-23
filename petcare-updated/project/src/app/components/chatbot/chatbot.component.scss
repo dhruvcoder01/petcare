@@ -1,0 +1,175 @@
+@use 'sass:color'; 
+
+// --- THEME COLORS ---
+$dark-brown: #3E2723;
+$cream: #F5F5DC;
+$caramel-accent: #C69C72; 
+$medium-brown: #6D4C41;
+
+.chatbot-container {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 2000;
+}
+
+.toggle-button {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, $dark-brown 0%, $medium-brown 100%);
+    color: $cream;
+    border: none;
+    cursor: pointer;
+    font-size: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
+    
+    &:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5), 0 0 40px rgba($caramel-accent, 0.7);
+    }
+}
+
+.chat-window {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    width: 350px;
+    height: 450px;
+    background-color: $cream;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform-origin: bottom right;
+    animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.chat-header {
+    background-color: $dark-brown;
+    color: $cream;
+    padding: 1rem;
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    .status {
+        font-size: 0.8rem;
+        opacity: 0.7;
+    }
+}
+
+.chat-body {
+    flex-grow: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    // FIX: Replaced deprecated lighten()
+    background-color: color.adjust($cream, $lightness: 1%); 
+    
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: $medium-brown;
+        border-radius: 3px;
+    }
+}
+
+.message {
+    display: flex;
+    margin-bottom: 1rem;
+    
+    .bubble {
+        max-width: 80%;
+        padding: 0.75rem;
+        border-radius: 15px;
+        font-size: 0.95rem;
+    }
+    
+    &.user {
+        justify-content: flex-end;
+        .bubble {
+            background-color: $dark-brown;
+            color: $cream;
+            border-bottom-right-radius: 2px;
+        }
+    }
+    
+    &.bot {
+        justify-content: flex-start;
+        .bubble {
+            background-color: $caramel-accent;
+            color: $dark-brown;
+            border-bottom-left-radius: 2px;
+        }
+        
+        .typing-dots {
+            display: flex;
+            span {
+                width: 6px;
+                height: 6px;
+                margin: 0 2px;
+                background-color: $dark-brown;
+                border-radius: 50%;
+                opacity: 0;
+                animation: dot-pulse 1s infinite;
+            }
+            span:nth-child(1) { animation-delay: 0s; }
+            span:nth-child(2) { animation-delay: 0.2s; }
+            span:nth-child(3) { animation-delay: 0.4s; }
+        }
+    }
+}
+
+@keyframes dot-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.3); opacity: 1; }
+}
+
+.chat-input {
+    display: flex;
+    padding: 1rem;
+    border-top: 1px solid #E0D5C7;
+    
+    input {
+        flex-grow: 1;
+        padding: 0.75rem;
+        border: 1px solid #E0D5C7;
+        border-radius: 20px;
+        margin-right: 0.5rem;
+        font-size: 1rem;
+        
+        &:focus {
+            outline: none;
+            border-color: $medium-brown;
+        }
+    }
+    
+    button {
+        background-color: $caramel-accent;
+        color: $dark-brown;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        
+        // FIX: Replaced deprecated darken()
+        &:hover {
+            background-color: color.adjust($caramel-accent, $lightness: -5%);
+        }
+    }
+}

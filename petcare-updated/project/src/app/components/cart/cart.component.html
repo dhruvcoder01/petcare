@@ -1,0 +1,103 @@
+<div class="cart-drawer-overlay" *ngIf="isCartOpen && !showCheckoutModal" (click)="toggleCart.emit()">
+    <div class="cart-drawer" [@slideIn] (click)="$event.stopPropagation()">
+        <div class="cart-header">
+            <h2>Your Cart 🛒</h2>
+            <button class="close-btn" (click)="toggleCart.emit()">✕</button>
+        </div>
+
+        <div class="cart-body">
+            <div class="cart-items" [@listAnimation]>
+                <ng-container *ngIf="(cartItems$ | async) as items">
+                    <div class="empty-state" *ngIf="items.length === 0">
+                        <span class="empty-icon">🦴</span>
+                        <p>Your cart is empty. Time to spoil your pet!</p>
+                    </div>
+                    
+                    <div class="cart-item" *ngFor="let item of items">
+                        <img [src]="item.imageUrl" [alt]="item.name" class="item-img">
+                        <div class="item-details">
+                            <span class="item-name">{{ item.name }}</span>
+                            <span class="item-price">₹{{ item.price | number:'1.2-2' }}</span>
+                        </div>
+                        <div class="item-quantity">
+                            <button (click)="updateQuantity(item, -1)">-</button>
+                            <span>{{ item.quantity }}</span>
+                            <button (click)="updateQuantity(item, 1)">+</button>
+                        </div>
+                        <button class="remove-btn" (click)="removeItem(item.id)">❌</button>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+
+        <div class="cart-footer">
+            <div class="subtotal-row">
+                <span>Subtotal:</span>
+                <span class="total-price">₹{{ cartTotal$ | async | number:'1.2-2' }}</span>
+            </div>
+            <button 
+                class="checkout-btn" 
+                [disabled]="(cartTotal$ | async) === 0"
+                (click)="openCheckout()">
+                Proceed to Checkout
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showCheckoutModal" (click)="closeCheckout()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+        
+        <div class="modal-header">
+            <h2>Checkout</h2>
+            <button class="close-btn" (click)="closeCheckout()">✕</button>
+        </div>
+
+        <form [formGroup]="checkoutForm" (ngSubmit)="processCheckout()">
+            
+            <div *ngIf="!checkoutSuccess">
+                <h3>Shipping Details</h3>
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input id="name" type="text" formControlName="name" placeholder="Your Name">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" formControlName="email" placeholder="Your Email">
+                </div>
+                <div class="form-group">
+                    <label for="address">Delivery Address</label>
+                    <textarea id="address" formControlName="address" rows="3" placeholder="Street, City, Pin"></textarea>
+                </div>
+                
+                <h3>Payment Method</h3>
+                <div class="payment-options">
+                    <div class="radio-group">
+                        <input type="radio" id="upi" value="upi" formControlName="paymentMethod">
+                        <label for="upi">UPI / Net Banking</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="card" value="card" formControlName="paymentMethod">
+                        <label for="card">Credit / Debit Card</label>
+                    </div>
+                    <div class="radio-group">
+                        <input type="radio" id="cod" value="cod" formControlName="paymentMethod">
+                        <label for="cod">Cash on Delivery (COD)</label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn" [disabled]="checkoutForm.invalid">
+                    Pay Now (₹{{ cartTotal$ | async | number:'1.2-2' }})
+                </button>
+            </div>
+            
+            <div *ngIf="checkoutSuccess" class="success-screen">
+                <span class="success-icon">🎉</span>
+                <h3>Payment Successful!</h3>
+                <p>Your pet will wag its tail soon!</p>
+                <button class="return-btn" (click)="closeCheckout()">Return to Shop</button>
+            </div>
+        </form>
+
+    </div>
+</div>

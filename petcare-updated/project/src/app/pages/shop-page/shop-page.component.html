@@ -1,0 +1,143 @@
+<div class="shop-container" [class.no-scroll]="isCartOpen">
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
+    <div class="logo">
+      <span class="logo-icon">🐾</span>
+      <span class="logo-text" *ngIf="!sidebarCollapsed">PetCare</span>
+    </div>
+
+    <nav class="menu">
+      <div 
+        class="menu-item" 
+        [class.active]="activeSection === 'dashboard'" 
+        (click)="navigateTo('dashboard')"
+        data-tooltip="Dashboard">
+        <span class="menu-icon">🏠</span>
+        <span class="menu-text" *ngIf="!sidebarCollapsed">Dashboard</span>
+      </div>
+      <div 
+        class="menu-item" 
+        [class.active]="activeSection === 'shop'" 
+        (click)="navigateTo('shop')"
+        data-tooltip="Shop">
+        <span class="menu-icon">🛒</span>
+        <span class="menu-text" *ngIf="!sidebarCollapsed">Shop</span>
+      </div>
+      <div 
+        class="menu-item" 
+        [class.active]="activeSection === 'vaccines'" 
+        (click)="navigateTo('vaccines')"
+        data-tooltip="Vaccines">
+        <span class="menu-icon">💉</span>
+        <span class="menu-text" *ngIf="!sidebarCollapsed">Vaccines</span>
+      </div>
+      <div 
+        class="menu-item" 
+        [class.active]="activeSection === 'vets'" 
+        (click)="navigateTo('vets')"
+        data-tooltip="Vets">
+        <span class="menu-icon">🧑‍⚕️</span>
+        <span class="menu-text" *ngIf="!sidebarCollapsed">Vets</span>
+      </div>
+      <div 
+        class="menu-item" 
+        [class.active]="activeSection === 'profile'" 
+        (click)="navigateTo('profile')"
+        data-tooltip="Profile">
+        <span class="menu-icon">👤</span>
+        <span class="menu-text" *ngIf="!sidebarCollapsed">Profile</span>
+      </div>
+      <div class="menu-item logout" (click)="navigateTo('logout')" data-tooltip="Logout">
+        <span class="menu-icon">🚪</span>
+        <span class="menu-text" *ngIf="!sidebarCollapsed">Logout</span>
+      </div>
+    </nav>
+
+    <button class="toggle-btn" (click)="toggleSidebar()">
+      {{ sidebarCollapsed ? '→' : '←' }}
+    </button>
+  </aside>
+
+  <main class="main-content">
+    <header class="shop-header">
+        <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input 
+                type="text" 
+                placeholder="Search for food, toys, or essentials..."
+                [(ngModel)]="searchQuery"
+                (ngModelChange)="applyFilters()">
+        </div>
+        
+        <div class="header-actions">
+            <button class="cart-icon-btn" (click)="toggleCartOpen()">
+                🛒 Cart
+                <span class="cart-badge">{{ cartCount$ | async }}</span>
+            </button>
+            <div class="profile-avatar">
+                <span class="avatar-icon">🐶</span>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero-section" [@heroFade]>
+        <div class="hero-content">
+            <h1>Because every paw deserves comfort.</h1>
+            <p class="subtext">Explore premium food, toys, and grooming care — all in one place.</p>
+        </div>
+        <div class="paw-animation">
+            <span class="paw-print" style="top: 20%; left: 10%;">🐾</span>
+            <span class="paw-print small-paw" style="top: 50%; left: 70%;">🐾</span>
+        </div>
+    </section>
+    
+    <section class="category-filter-section" [@filterFade]>
+        <h2 class="section-title">Shop by Category</h2>
+        <div class="category-pills">
+            <button 
+                *ngFor="let category of categories"
+                class="category-pill"
+                [class.active]="activeCategory === category"
+                (click)="selectCategory(category)">
+                {{ getCategoryIcon(category) }} {{ category }}
+            </button>
+        </div>
+    </section>
+    
+    <app-filter-sort 
+        [currentFilters]="currentFilterState"
+        (filterChange)="onFilterSortChange($event)">
+    </app-filter-sort>
+
+
+    <section class="product-grid-section">
+        <h2 class="section-title">{{ activeCategory === 'All' ? 'All Products' : activeCategory + ' Essentials' }} ({{ filteredProducts.length }})</h2>
+        
+        <div class="empty-state" *ngIf="filteredProducts.length === 0">
+            <span class="empty-icon">😥</span>
+            <p>No products found matching your criteria. Try adjusting your filters.</p>
+        </div>
+
+        <div class="product-grid">
+            <app-product-card 
+                *ngFor="let product of filteredProducts; trackBy: trackByProduct" 
+                [product]="product"
+                (addToCart)="onAddToCart(product)"
+                [@cardFade]>
+            </app-product-card>
+        </div>
+    </section>
+
+    <footer class="shop-footer">
+      <p>© 2025 PetCare Shop. Dedicated to happy pets.</p>
+    </footer>
+    
+    <button class="scroll-to-top" (click)="scrollToTop()">↑</button>
+  </main>
+  
+  <app-cart 
+    [isCartOpen]="isCartOpen" 
+    (toggleCart)="toggleCartOpen()">
+  </app-cart>
+  
+  <app-chatbot></app-chatbot>
+</div>

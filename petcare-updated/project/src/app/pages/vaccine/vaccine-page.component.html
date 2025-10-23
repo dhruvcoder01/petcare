@@ -1,0 +1,233 @@
+<div class="dashboard-container" [class.no-scroll]="showAddModal">
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
+    <div class="logo">
+      <span class="logo-icon">🐾</span>
+      @if (!sidebarCollapsed) { 
+        <span class="logo-text">PetCare</span>
+      }
+    </div>
+ <app-chatbot></app-chatbot>
+
+    <nav class="menu">
+      <div 
+        class="menu-item" 
+        [class.active]="activeSection === 'dashboard'" 
+        (click)="navigateTo('dashboard')"
+        data-tooltip="Dashboard">
+        <span class="menu-icon">🏠</span>
+        @if (!sidebarCollapsed) {
+          <span class="menu-text">Dashboard</span>
+        }
+      </div>
+      
+      <div 
+        class="menu-item" 
+        [class.active]="activeSection === 'shop'" 
+        (click)="navigateTo('shop')"
+        data-tooltip="Shop">
+        <span class="menu-icon">🛒</span>
+        @if (!sidebarCollapsed) {
+          <span class="menu-text">Shop</span>
+        }
+      </div>
+      <div 
+        class="menu-item" 
+        [class.active]="activeSection === 'vaccines'" 
+        (click)="navigateTo('vaccines')"
+        data-tooltip="Vaccines">
+        <span class="menu-icon">💉</span>
+        @if (!sidebarCollapsed) {
+          <span class="menu-text">Vaccines</span>
+        }
+      </div>
+      <div 
+        class="menu-item" 
+        [class.active]="activeSection === 'vets'" 
+        (click)="navigateTo('vets')"
+        data-tooltip="Vets">
+        <span class="menu-icon">🧑‍⚕️</span>
+        @if (!sidebarCollapsed) {
+          <span class="menu-text">Vets</span>
+        }
+      </div>
+      <div 
+        class="menu-item" 
+        [class.active]="activeSection === 'profile'" 
+        (click)="navigateTo('profile')"
+        data-tooltip="Profile">
+        <span class="menu-icon">👤</span>
+        @if (!sidebarCollapsed) {
+          <span class="menu-text">Profile</span>
+        }
+      </div>
+      <div class="menu-item logout" 
+        [class.active]="activeSection === 'logout'" 
+        (click)="navigateTo('logout')" 
+        data-tooltip="Logout">
+        <span class="menu-icon">🚪</span>
+        @if (!sidebarCollapsed) {
+          <span class="menu-text">Logout</span>
+        }
+      </div>
+    </nav>
+
+    <button class="toggle-btn" (click)="toggleSidebar()">
+      {{ sidebarCollapsed ? '→' : '←' }}
+    </button>
+  </aside>
+
+  <main class="main-content">
+    <div class="vaccine-page-container">
+      <header class="page-header">
+        <h1>Vaccination & Health Tracker</h1>
+        <p>Manage records, view history, and track upcoming doses for your pets.</p>
+      </header>
+
+      <div class="action-bar">
+        <div class="pet-selector-group">
+            <label for="pet-select">Viewing Records for:</label>
+            <select id="pet-select" #petSelect (change)="selectPet(petSelect.value)">
+              @if (pets.length === 0) { 
+                <option value="" disabled>No Pets Found</option>
+              }
+              @for (pet of pets; track pet.id) { 
+                <option [value]="pet.id" [selected]="pet.id === selectedPet?.id">
+                  {{ pet.name }} ({{ pet.type }})
+                </option>
+              }
+            </select>
+        </div>
+        
+        <button class="add-record-btn" (click)="openAddRecordModal()" [disabled]="!selectedPet">
+            <span class="plus-icon">➕</span> Log New Dose
+        </button>
+        
+        <button class="find-vet-btn" (click)="navigateTo('vets')">
+            <span class="vet-icon">🩺</span> Find Vaccine Center
+        </button>
+      </div>
+
+      @if (selectedPet) {
+        <div class="content-layout">
+          
+          <div class="left-panel">
+              <div class="summary-card">
+                  <!-- FIX: Removed ?. -->
+                  <h2>{{ selectedPet.name }}'s Health Summary</h2>
+                  <div class="summary-grid">
+                      <div class="summary-item status-overdue">
+                          <strong>{{ overdueCount }}</strong>
+                          <span>Overdue Doses</span>
+                      </div>
+                      <div class="summary-item status-due">
+                          <strong>{{ dueSoonCount }}</strong>
+                          <span>Due Soon (30 Days)</span>
+                      </div>
+                      <div class="summary-item status-complete">
+                          <strong>{{ vaccineRecords.length - overdueCount }}</strong>
+                          <span>Total Doses Logged</span>
+                      </div>
+                  </div>
+              </div>
+
+              <div class="recommendations-card">
+                  <!-- FIX: Removed ?. -->
+                  <h2>Recommended Vaccines for {{ selectedPet.type }}s</h2>
+                  @for (reco of recommendations; track reco.name) {
+                    <div class="reco-item">
+                        <div class="reco-header">
+                            <span class="reco-name">{{ reco.name }}</span>
+                            <span class="reco-age">({{ reco.ageStart }})</span>
+                        </div>
+                        <p class="reco-frequency">{{ reco.frequency }}</p>
+                        <p class="reco-details">💡 Why: {{ reco.whyNeeded }}</p>
+                    </div>
+                  }
+              </div>
+          </div>
+
+          <div class="right-panel">
+              <h2>Vaccine History Timeline</h2>
+              
+              <div class="timeline-container">
+                @for (record of vaccineRecords; track record.dateGiven) {
+                  <div class="timeline-item">
+                      <div class="timeline-dot" 
+                          [class.overdue]="isOverdue(record.nextDueDate)" 
+                          [class.completed]="record.status === 'Completed'">
+                      </div>
+                      <div class="timeline-content">
+                          <h3>{{ record.vaccineName }}</h3>
+                          <p class="date-given">Given: {{ record.dateGiven | date:'mediumDate' }} by {{ record.vetName }}</p>
+                          <p class="date-due" [class.overdue-text]="isOverdue(record.nextDueDate)">
+                              Next Due: {{ record.nextDueDate | date:'mediumDate' }}
+                          </p>
+                          <span class="status-chip" [class.status-overdue]="isOverdue(record.nextDueDate)">
+                              {{ isOverdue(record.nextDueDate) ? '⚠ OVERDUE' : '✅ COMPLETE' }}
+                          </span>
+                      </div>
+                  </div>
+                }
+
+                @if (vaccineRecords.length === 0) { 
+                  <div class="empty-state-records">
+                      <!-- FIX: Removed ?. -->
+                      No history found for {{ selectedPet.name }}. Log the first dose!
+                  </div>
+                }
+              </div>
+          </div>
+        </div>
+      }
+      
+      @if (!selectedPet) {
+        <div class="empty-state-page">
+            <p>Please add or select a pet to manage vaccination records.</p>
+            <button class="add-pet-btn" (click)="navigateTo('profile')">Add New Pet</button>
+        </div>
+      }
+
+    </div>
+  </main>
+  
+  @if (showAddModal) {
+    <div class="modal-overlay" (click)="closeAddRecordModal()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Log New Vaccine Dose</h2>
+                <button class="close-btn" (click)="closeAddRecordModal()">✕</button>
+            </div>
+            <form #vaccineForm="ngForm" (ngSubmit)="saveVaccineRecord(vaccineForm.valid!)">
+                <div class="form-group">
+                    <label>Pet</label>
+                    <input type="text" [value]="selectedPet?.name" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="vaccineName">Vaccine Name *</label>
+                    <input type="text" id="vaccineName" name="vaccineName" [(ngModel)]="newRecord.vaccineName" required>
+                </div>
+                
+                <div class="form-group-inline">
+                    <div class="form-group">
+                        <label for="dateGiven">Date Given *</label>
+                        <input type="date" id="dateGiven" name="dateGiven" [(ngModel)]="newRecord.dateGiven" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nextDueDate">Next Due Date *</label>
+                        <input type="date" id="nextDueDate" name="nextDueDate" [(ngModel)]="newRecord.nextDueDate" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="vetName">Veterinarian/Clinic Name</label>
+                    <input type="text" id="vetName" name="vetName" [(ngModel)]="newRecord.vetName">
+                </div>
+
+                <button type="submit" class="submit-modal-btn" [disabled]="!vaccineForm.valid">
+                    Save Vaccine Record
+                </button>
+            </form>
+        </div>
+    </div>
+  }
+</div>

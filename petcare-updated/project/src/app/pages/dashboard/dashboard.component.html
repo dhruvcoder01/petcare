@@ -1,0 +1,307 @@
+<div class="dashboard-container" [class.no-scroll]="showModal">
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
+    <div class="logo">
+      <span class="logo-icon">🐾</span>
+      <span class="logo-text" *ngIf="!sidebarCollapsed">PetCare</span>
+    </div>
+
+    <nav class="menu">
+      <div 
+        class="menu-item" 
+        [class.active]="activeSection === 'dashboard'" 
+        (click)="navigateTo('dashboard')"
+        data-tooltip="Dashboard">
+        <span class="menu-icon">🏠</span>
+        <span class="menu-text" *ngIf="!sidebarCollapsed">Dashboard</span>
+      </div>
+      
+      <div 
+        class="menu-item" 
+        [class.active]="activeSection === 'shop'" 
+        (click)="navigateTo('shop')"
+        data-tooltip="Shop">
+        <span class="menu-icon">🛒</span>
+        <span class="menu-text" *ngIf="!sidebarCollapsed">Shop</span>
+      </div>
+      <div 
+        class="menu-item" 
+        [class.active]="activeSection === 'vaccines'" 
+        (click)="navigateTo('vaccines')"
+        data-tooltip="Vaccines">
+        <span class="menu-icon">💉</span>
+        <span class="menu-text" *ngIf="!sidebarCollapsed">Vaccines</span>
+      </div>
+      <div 
+        class="menu-item" 
+        [class.active]="activeSection === 'vets'" 
+        (click)="navigateTo('vets')"
+        data-tooltip="Vets">
+        <span class="menu-icon">🧑‍⚕️</span>
+        <span class="menu-text" *ngIf="!sidebarCollapsed">Vets</span>
+      </div>
+      <div 
+        class="menu-item" 
+        [class.active]="activeSection === 'profile'" 
+        (click)="navigateTo('profile')"
+        data-tooltip="Profile">
+        <span class="menu-icon">👤</span>
+        <span class="menu-text" *ngIf="!sidebarCollapsed">Profile</span>
+      </div>
+      <div class="menu-item logout" (click)="navigateTo('logout')" data-tooltip="Logout">
+        <span class="menu-icon">🚪</span>
+        <span class="menu-text" *ngIf="!sidebarCollapsed">Logout</span>
+      </div>
+    </nav>
+
+    <button class="toggle-btn" (click)="toggleSidebar()">
+      {{ sidebarCollapsed ? '→' : '←' }}
+    </button>
+  </aside>
+
+  <main class="main-content">
+    
+    <div *ngIf="activeSection === 'dashboard'">
+        <section class="header-section">
+            <div class="header-content">
+                <h1>{{ getGreeting() }}</h1>
+                <p class="subtext">Here’s all your pet details and care updates.</p>
+            </div>
+            
+            <div class="daily-tip-box">
+                <span class="tip-icon">{{ dailyTip.emoji }}</span>
+                {{ dailyTip.tip }}
+            </div>
+        </section>
+
+        <div class="alert-banner" *ngIf="healthAlert">
+            <span class="alert-icon">⚠️</span>
+            <p><strong>Health Alert:</strong> One or more pets have upcoming or overdue care. Check your records!</p>
+        </div>
+        
+        <section class="pet-cards-section">
+            <h2 class="section-title">
+                Your Beloved Pets
+                <button class="add-btn primary-btn" (click)="openModal('addPet')">
+                    <span class="plus-icon">+</span> Add New Pet
+                </button>
+            </h2>
+
+            <div class="empty-state" *ngIf="pets.length === 0">
+                <span class="empty-icon">🦴</span>
+                <p>No pets added yet. Click 'Add New Pet' to get started!</p>
+            </div>
+
+            <div class="pet-cards-grid" *ngIf="pets.length > 0">
+                <div class="pet-card-wrapper" *ngFor="let pet of pets">
+                    <div class="pet-card">
+                        <div class="pet-photo">
+                            <img [src]="pet.photo" [alt]="pet.name">
+                        </div>
+                        <div class="pet-info">
+                            <h3>{{ pet.name }} ({{ pet.gender }})</h3>
+                            <p class="breed">{{ pet.breed }}</p>
+
+                            <div class="info-chip-grid">
+                                <span class="info-chip">
+                                    {{ getPetHealthChipData(pet).detailedAge }}
+                                </span>
+                                <span 
+                                    class="info-chip" 
+                                    [class.vaccine-due]="pet.vaccinationStatus !== 'up-to-date'">
+                                    Next Event: {{ getPetHealthChipData(pet).nextEvent | date: 'shortDate' }}
+                                </span>
+                                <span class="info-chip">
+                                    Last Vet: {{ getPetHealthChipData(pet).lastVetVisit }}
+                                </span>
+                            </div>
+
+                            <div class="pet-details">
+                                <p><strong>Weight:</strong> {{ pet.weight }} kg</p>
+                                <p><strong>Microchip ID:</strong> {{ pet.microchipId || 'N/A' }}</p>
+                            </div>
+                            
+                            <div class="vaccination-status" 
+                                [class.up-to-date]="pet.vaccinationStatus === 'up-to-date'" 
+                                [class.due-soon]="pet.vaccinationStatus === 'due-soon'"
+                                [class.overdue]="pet.vaccinationStatus === 'overdue'">
+                                <span class="status-icon">{{ pet.vaccinationStatus === 'up-to-date' ? '✔' : '⚠' }}</span>
+                                <span class="status-text">Status: {{ pet.vaccinationStatus | titlecase }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="action-btn" (click)="openModal('addRecord', pet.name)">
+                             Add Health Record
+                        </button>
+                        <button class="action-btn" (click)="openModal('addVaccine', pet.name)">
+                             Add Vaccination
+                        </button>
+                        <button class="action-btn remove-btn" (click)="removePet(pet.id)">
+                             Remove Pet
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="quick-actions-section">
+            <h2 class="section-title">Quick Actions</h2>
+            <div class="quick-actions-grid">
+                <div class="action-card" (click)="navigateTo('vets')">
+                    <span class="action-icon">🏥</span>
+                    <h3>Book Vet Appointment</h3>
+                    <p>Schedule a visit with our trusted vets.</p>
+                </div>
+                <div class="action-card" (click)="navigateTo('shop')">
+                    <span class="action-icon">🛒</span>
+                    <h3>Shop Now</h3>
+                    <p>Browse food, toys, and accessories.</p>
+                </div>
+                <div class="action-card" (click)="navigateTo('vaccines')">
+                    <span class="action-icon">💉</span>
+                    <h3>View Vaccine Records</h3>
+                    <p>Check status and upcoming due dates.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="history-section">
+            <div class="section-title-wrapper">
+                <h2 class="section-title">Recent Activity Timeline</h2>
+                <button class="add-btn secondary-btn" (click)="openModal('addRecord')">
+                    <span class="plus-icon">+</span> Add Record
+                </button>
+            </div>
+            
+            <div class="activity-timeline-container">
+                <div class="activity-timeline" *ngIf="activities.length > 0">
+                    <div class="timeline-item" *ngFor="let activity of activities" 
+                        [attr.data-icon]="(activity.type === 'Vaccination' ? '💉' : activity.type === 'Medicine' || activity.type === 'Deworming' ? '💊' : activity.type === 'Grooming' ? '✂️' : activity.type === 'New Pet' ? '➕' : '🩺')">
+                        <div class="timeline-header">
+                            <span class="title">
+                                {{ activity.petName }} - {{ activity.type }}
+                            </span>
+                            <span class="date">{{ activity.date | date: 'mediumDate' }} ({{ getRelativeTime(activity.date) }})</span>
+                        </div>
+                        <div class="timeline-body">
+                            {{ activity.details }}
+                        </div>
+                    </div>
+                </div>
+                <div class="empty-state-table" *ngIf="activities.length === 0">
+                    <p>No recent activity records. Add one to track your pet's health!</p>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <div *ngIf="activeSection !== 'dashboard'">
+        <section class="placeholder-section">
+            <h1 class="section-title">{{ activeSection | titlecase }} Section</h1>
+            <p>This section is under development. Navigate back to the Dashboard!</p>
+        </section>
+    </div>
+    <app-chatbot></app-chatbot>
+
+
+    <footer class="dashboard-footer">
+      <p>© 2025 PetCare. Love. Heal. Protect.</p>
+    </footer>
+  </main>
+
+  
+  
+  <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ modalTitle }}</h2>
+        <button class="close-btn" (click)="closeModal()">✕</button>
+      </div>
+
+      <form #modalForm="ngForm" (ngSubmit)="submitModal(modalForm)">
+        <div *ngIf="modalType === 'addPet'">
+          <div class="form-group">
+            <label for="name">Name <span class="required">*</span></label>
+            <input type="text" id="name" name="name" [(ngModel)]="newPet.name" required>
+          </div>
+          <div class="form-group-inline">
+            <div class="form-group">
+              <label for="breed">Breed</label>
+              <input type="text" id="breed" name="breed" [(ngModel)]="newPet.breed">
+            </div>
+            <div class="form-group">
+              <label for="age">Age (Yrs)</label>
+              <input type="number" id="age" name="age" [(ngModel)]="newPet.age">
+            </div>
+          </div>
+          <div class="form-group-inline">
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" name="gender" [(ngModel)]="newPet.gender">
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="weight">Weight (kg)</label>
+                <input type="number" id="weight" name="weight" [(ngModel)]="newPet.weight">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="microchipId">Microchip ID</label>
+            <input type="text" id="microchipId" name="microchipId" [(ngModel)]="newPet.microchipId">
+          </div>
+          <div class="form-group">
+            <label for="lastVetVisit">Last Vet Visit Date</label>
+            <input type="date" id="lastVetVisit" name="lastVetVisit" [(ngModel)]="newPet.lastVetVisit">
+          </div>
+          <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea id="notes" name="notes" rows="3" [(ngModel)]="newPet.notes"></textarea>
+          </div>
+        </div>
+
+        <div *ngIf="modalType === 'addRecord' || modalType === 'addVaccine'">
+          <div class="form-group-inline">
+            <div class="form-group">
+              <label for="petName">Pet</label>
+              <select id="petName" name="petName" [(ngModel)]="newActivity.petName" required>
+                <option *ngFor="let pet of pets" [ngValue]="pet.name">{{ pet.name }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="date">Date</label>
+              <input type="date" id="date" name="date" [(ngModel)]="newActivity.date" required>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="type">{{ modalType === 'addVaccine' ? 'Vaccine/Medication Type' : 'Record Type' }}</label>
+            <select id="type" name="type" [(ngModel)]="newActivity.type" required>
+              <option value="Vet Visit">Vet Visit</option>
+              <option value="Vaccination">Vaccination</option>
+              <option value="Medicine">Medication</option>
+              <option value="Deworming">Deworming</option>
+              <option value="Grooming">Grooming</option>
+            </select>
+          </div>
+          
+          <div class="form-group" *ngIf="newActivity.type === 'Vaccination' || newActivity.type === 'Medicine' || newActivity.type === 'Deworming'">
+            <label for="nextDue">Next Due Date</label>
+            <input type="date" id="nextDue" name="nextDue" [(ngModel)]="newActivity.nextDue">
+          </div>
+
+          <div class="form-group">
+            <label for="details">Details / Notes <span class="required">*</span></label>
+            <textarea id="details" name="details" rows="3" [(ngModel)]="newActivity.details" required></textarea>
+          </div>
+        </div>
+        
+        <button type="submit" class="submit-modal-btn" [disabled]="modalForm.invalid">
+          Save {{ modalType === 'addPet' ? 'Pet' : 'Record' }}
+        </button>
+      </form>
+      
+    </div>
+  </div>
+</div>

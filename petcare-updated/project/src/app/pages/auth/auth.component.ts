@@ -2,13 +2,25 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 
 @Component({
   selector: 'app-auth',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './auth.component.html',
-  styleUrls: ['./auth.component.scss']
+  styleUrls: ['./auth.component.scss'],
+  animations: [
+    trigger('slideIn', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(-10px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ]),
+      transition(':leave', [
+        animate('200ms ease-in', style({ opacity: 0, transform: 'translateY(-10px)' }))
+      ])
+    ])
+  ]
 })
 export class AuthComponent {
   isLogin = true;
@@ -23,9 +35,7 @@ export class AuthComponent {
       name: [''],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      petName: [''],
-      petBreed: [''],
-      petYear: ['']
+      confirmPassword: ['']
     });
   }
 
@@ -35,25 +45,26 @@ export class AuthComponent {
 
     if (this.isLogin) {
       this.authForm.get('name')?.clearValidators();
-      this.authForm.get('petName')?.clearValidators();
-      this.authForm.get('petBreed')?.clearValidators();
-      this.authForm.get('petYear')?.clearValidators();
+      this.authForm.get('confirmPassword')?.clearValidators();
     } else {
       this.authForm.get('name')?.setValidators([Validators.required]);
-      this.authForm.get('petName')?.setValidators([Validators.required]);
-      this.authForm.get('petBreed')?.setValidators([Validators.required]);
-      this.authForm.get('petYear')?.setValidators([Validators.required, Validators.min(1900)]);
+      this.authForm.get('confirmPassword')?.setValidators([Validators.required]);
     }
 
     this.authForm.get('name')?.updateValueAndValidity();
-    this.authForm.get('petName')?.updateValueAndValidity();
-    this.authForm.get('petBreed')?.updateValueAndValidity();
-    this.authForm.get('petYear')?.updateValueAndValidity();
+    this.authForm.get('confirmPassword')?.updateValueAndValidity();
   }
 
   onSubmit(): void {
     if (this.authForm.valid) {
       const formData = this.authForm.value;
+
+      if (!this.isLogin) {
+        if (formData.password !== formData.confirmPassword) {
+          alert('Passwords do not match!');
+          return;
+        }
+      }
 
       if (this.isLogin) {
         console.log('Login:', {
@@ -66,5 +77,9 @@ export class AuthComponent {
 
       this.router.navigate(['/dashboard']);
     }
+  }
+
+  onSocialLogin(provider: string): void {
+    console.log(`Login with ${provider}`);
   }
 }
